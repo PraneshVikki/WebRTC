@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react'
 import './Room.css'
 import { useParams } from 'react-router-dom'
 
-const Room = ({setRoomId}) => {
+const Room = ({setRoomId,videoGrid}) => {
   const { room } = useParams();
-
+console.log(videoGrid)
   useEffect(() => {
     setRoomId(room);
     console.log(room)
@@ -13,12 +13,8 @@ const Room = ({setRoomId}) => {
     
   return (
     <div>
-        <div>
-            <div>Video</div>
-            <div>
-                <video src=""></video>
-            </div>
-        </div>
+        <div>Video</div>
+        <div className='videoGrid' ref={videoGrid}></div>
     </div>
   )
 }
