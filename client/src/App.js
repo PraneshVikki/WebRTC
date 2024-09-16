@@ -12,17 +12,38 @@ const socket = io('http://localhost:3001', {
 
 function App() {
   const [RoomId, setRoomId] = useState(null);
+  //const width = useRef(780);
+  //const height = useRef(780);
   const [UserId, setUserId] = useState({});
   const [stream, setStream] = useState(null);
   const navigate = useNavigate();
   const videoGrid = useRef(null);
+  let mediaStream = useRef(null);
+  let mediaStreamRecorder = useRef(null);
+  let recordBlob = useRef(null);
+  
+  /*const handleChangeSize = (e) => {
+    e.preventDefault();
+    const videos = document.getElementsByTagName('video');  
+    for (let video of videos) {
+      video.style.width = `${width.current}px`; 
+      video.style.height = `${height.current}px`; 
+    }
+  };
+  
+  const handleHeight = (e)=>{
+    height.current = e.target.value
+  }
+  const handleWidth= (e)=>{
+    width.current = e.target.value
+  }*/
 
+    console.log(mediaStream.current);
   useEffect(() => {
     if (RoomId) {
       const mypeer = new Peer();
       mypeer.on('open', (id) => {
         socket.emit('join-room', RoomId, id);
-        console.log('Id', id);
       });
       socket.connect();
 
@@ -39,6 +60,19 @@ function App() {
         audio: true,
         video: true,
       }).then((stream) => {
+        mediaStream.current = stream
+        console.log(stream)
+        console.log(mediaStream.current)
+        const constraints = {
+          width: { min: 100, ideal: 100 },
+          height: { min: 100, ideal: 100 },
+        };
+        //.applyConstraints(constraints)
+        const tracks = stream.getTracks();
+        tracks[1].applyConstraints(constraints);
+        for (let track in tracks){
+          tracks[track].enabled = false;
+        }
         const video = document.createElement('video');
         addVideo(video, stream);
         setStream(stream);
@@ -64,7 +98,6 @@ function App() {
         });
 
         socket.on('user-connected', (userId) => {
-          console.log('User connected:', userId);
           const video = document.createElement('video');
           const call = mypeer.call(userId, stream);
 
@@ -102,14 +135,38 @@ function App() {
     });
   };
 
+  const handleStart = ()=>{
+    console.log('handleStart')
+    recordBlob.current = [];
+    mediaStreamRecorder.current = new MediaRecorder(mediaStream.current);
+    mediaStreamRecorder.current.ondataavailable = (event) => {
+      console.log(event.data)
+      recordBlob.current.push(event.data);
+    };
+    mediaStreamRecorder.current.start()
+      
+  }
+  const handleStop = ()=>{
+    mediaStreamRecorder.current.stop()
+  }
+
+  const handlePlay = ()=>{
+    let superBuffer = new Blob(recordBlob.current);
+    console.log(superBuffer);
+    console.log(window.URL.createObjectURL(superBuffer))
+    let recorededvideoId = document.getElementById('recorededvideoId')
+    recorededvideoId.src = window.URL.createObjectURL(superBuffer);
+    recorededvideoId.controls = true;
+    recorededvideoId.play();
+  }
+
   return (
     <div className="App">
       <div>
         <Routes>
-          <Route path='/:room' element={<Room setRoomId={setRoomId} videoGrid={videoGrid} />} />
+          <Route path='/:room' element={<Room setRoomId={setRoomId} videoGrid={videoGrid} handleStart={handleStart} handleStop={handleStop} handlePlay={handlePlay}/>} />
           <Route path='/' element={<Home handleRoom={handleRoom} />} />
         </Routes>
-        <div ref={videoGrid} className="videoGrid"></div>
       </div>
     </div>
   );
