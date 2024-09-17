@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import './Room.css'
 import { useParams } from 'react-router-dom'
 
-const Room = ({setRoomId,videoGrid,handleChangeSize,handleStart,handleStop,handlePlay}) => {
+const Room = ({setRoomId,videoGrid,handleChangeSize,handleStart,handleStop,handlePlay,handleMessages,tempMess}) => {
   const { room } = useParams();
   useEffect(() => {
     setRoomId(room);
@@ -12,7 +12,8 @@ const Room = ({setRoomId,videoGrid,handleChangeSize,handleStart,handleStop,handl
 
     
   return (
-    <div>
+    <div className='room'>
+      <div>
         <div>Video</div>
         <div>
           <h3>Screen sizing</h3>
@@ -35,6 +36,21 @@ const Room = ({setRoomId,videoGrid,handleChangeSize,handleStart,handleStop,handl
           <video id='recorededvideoId'></video>
         </div>
     </div>
+    <div>
+      <div>Chat Box</div>
+      <div>
+
+      </div>
+      <form onSubmit={handleMessages}>
+        <input type="text"id='textBox' value={tempMess.current} onChange={(e)=>tempMess.current = e.target.value}/>
+        <input type="submit"  />
+      </form>
+      <div id='messageId'>
+
+      </div>
+    </div>
+    </div>
+
   )
 }
 

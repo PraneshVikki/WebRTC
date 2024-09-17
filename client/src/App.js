@@ -21,6 +21,8 @@ function App() {
   let mediaStream = useRef(null);
   let mediaStreamRecorder = useRef(null);
   let recordBlob = useRef(null);
+  const tempMess = useNavigate('');
+  let name = useRef('')
   
   /*const handleChangeSize = (e) => {
     e.preventDefault();
@@ -39,14 +41,20 @@ function App() {
   }*/
 
     console.log(mediaStream.current);
-  useEffect(() => {
-    if (RoomId) {
-      const mypeer = new Peer();
-      mypeer.on('open', (id) => {
-        socket.emit('join-room', RoomId, id);
-      });
-      socket.connect();
-
+    //socket.emit('new-user',name)
+    useEffect(()=>{
+      name.current = prompt("what is ur name");
+    },[])
+    useEffect(() => {
+      if (RoomId) {
+        const mypeer = new Peer();
+        mypeer.on('open', (id) => {
+          UserId[id] = name;
+          socket.emit('join-room', RoomId, id,name.current);
+        });
+        socket.connect();
+        
+      console.log(name.current)
       const addVideo = (video, stream) => {
         video.muted = true;
         video.srcObject = stream;
@@ -160,11 +168,33 @@ function App() {
     recorededvideoId.play();
   }
 
+const handleMessages = (e) => {
+  e.preventDefault();
+  console.log(UserId)
+
+  socket.emit('send-message', tempMess.current); 
+  const textBox = document.getElementById('textBox');
+  textBox.value = '';
+  tempMess.current = '';
+};
+useEffect(() => {
+  socket.on('recive-message', (message) => {
+    displayMessage(message);
+  });
+}, []);
+function displayMessage(message) {
+  console.log(name.current );
+  const div = document.createElement('div');
+  div.textContent = `${name.current} : ${message}`;
+  document.getElementById('messageId').append(div);  
+}
+
+
   return (
     <div className="App">
       <div>
         <Routes>
-          <Route path='/:room' element={<Room setRoomId={setRoomId} videoGrid={videoGrid} handleStart={handleStart} handleStop={handleStop} handlePlay={handlePlay}/>} />
+          <Route path='/:room' element={<Room setRoomId={setRoomId} videoGrid={videoGrid} handleStart={handleStart} handleStop={handleStop} handlePlay={handlePlay} handleMessages={handleMessages} tempMess={tempMess}/>} />
           <Route path='/' element={<Home handleRoom={handleRoom} />} />
         </Routes>
       </div>
