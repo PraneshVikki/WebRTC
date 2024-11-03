@@ -120,15 +120,10 @@ function App() {
           setUserId((prev) => ({ ...prev, [userId]: call }));
         });
 
-        window.addEventListener('beforeunload', () => {
-          socket.emit('disconnect-user', RoomId, mypeer.id);
-        });
+
       });
 
       return () => {
-        window.removeEventListener('beforeunload', () => {
-          socket.emit('disconnect-user', RoomId, mypeer.id);
-        });
         socket.off('user-connected');
         socket.off('user-disconnected');
         socket.disconnect();
@@ -170,9 +165,9 @@ function App() {
 
 const handleMessages = (e) => {
   e.preventDefault();
-  console.log(UserId)
+  console.log(tempMess.current)
 
-  socket.emit('send-message', tempMess.current); 
+  socket.emit('send-message',RoomId, tempMess.current); 
   const textBox = document.getElementById('textBox');
   textBox.value = '';
   tempMess.current = '';
@@ -180,13 +175,26 @@ const handleMessages = (e) => {
 useEffect(() => {
   socket.on('recive-message', (message) => {
     displayMessage(message);
+    console.log(name.current,message)
+    socket.emit('send-message-anotherPeer',name.current,message)
   });
 }, []);
+
+useEffect(() => {
+  socket.on('recive-message-anotherPeer',(anotherPeerName,message)=>{
+    const div = document.createElement('div');
+    div.textContent = `${anotherPeerName} : ${message}`;
+    document.getElementById('messageId').append(div);  
+  })
+}, [])
+
+
 function displayMessage(message) {
-  console.log(name.current );
+  console.log(name.current,message );
   const div = document.createElement('div');
   div.textContent = `${name.current} : ${message}`;
   document.getElementById('messageId').append(div);  
+
 }
 
 

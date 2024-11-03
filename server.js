@@ -42,10 +42,14 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
       socket.to(roomId).emit('user-disconnected', userId);
     });
-    socket.on('send-message', (message) => {
-      console.log(message);
+    socket.on('send-message', (roomId,message) => {
+      console.log(message)
       socket.emit('recive-message', message);
     });
+    socket.on('send-message-anotherPeer',(name,message)=>{
+      console.log(name,message);
+      socket.to(roomId).emit('recive-message-anotherPeer',name, message);
+    })
   });
 });
 
