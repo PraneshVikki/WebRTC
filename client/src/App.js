@@ -6,14 +6,15 @@ import Home from './Home/Home.js';
 import { io } from 'socket.io-client';
 import { Peer } from 'peerjs';
 
+
 const socket = io('http://localhost:3001', {
   autoConnect: false,
 });
 
 function App() {
   const [RoomId, setRoomId] = useState(null);
-  //const width = useRef(780);
-  //const height = useRef(780);
+  const width = useRef(780);
+  const height = useRef(780);
   const [UserId, setUserId] = useState({});
   const [stream, setStream] = useState(null);
   const navigate = useNavigate();
@@ -23,8 +24,10 @@ function App() {
   let recordBlob = useRef(null);
   const tempMess = useNavigate('');
   let name = useRef('')
+  const [onVideo, setOnVideo] = useState(false);
+  const tracks = useRef({})
   
-  /*const handleChangeSize = (e) => {
+  const handleChangeSize = (e) => {
     e.preventDefault();
     const videos = document.getElementsByTagName('video');  
     for (let video of videos) {
@@ -32,16 +35,7 @@ function App() {
       video.style.height = `${height.current}px`; 
     }
   };
-  
-  const handleHeight = (e)=>{
-    height.current = e.target.value
-  }
-  const handleWidth= (e)=>{
-    width.current = e.target.value
-  }*/
-
     console.log(mediaStream.current);
-    //socket.emit('new-user',name)
     useEffect(()=>{
       name.current = prompt("what is ur name");
     },[])
@@ -75,11 +69,11 @@ function App() {
           width: { min: 100, ideal: 100 },
           height: { min: 100, ideal: 100 },
         };
-        //.applyConstraints(constraints)
-        const tracks = stream.getTracks();
-        tracks[1].applyConstraints(constraints);
-        for (let track in tracks){
-          tracks[track].enabled = false;
+        //applyConstraints(constraints)
+        tracks.current = stream.getTracks();
+        tracks.current[1].applyConstraints(constraints);
+        for (let track in tracks.current){
+          tracks.current[track].enabled = false;
         }
         const video = document.createElement('video');
         addVideo(video, stream);
@@ -188,6 +182,14 @@ useEffect(() => {
   })
 }, [])
 
+const handleOnVideo =() =>{
+  console.log(onVideo)
+  setOnVideo(!onVideo)
+  console.log(onVideo)
+  for (let track in tracks.current){
+    tracks.current[track].enabled = !onVideo;
+  }
+}
 
 function displayMessage(message) {
   console.log(name.current,message );
@@ -202,7 +204,7 @@ function displayMessage(message) {
     <div className="App">
       <div>
         <Routes>
-          <Route path='/:room' element={<Room setRoomId={setRoomId} videoGrid={videoGrid} handleStart={handleStart} handleStop={handleStop} handlePlay={handlePlay} handleMessages={handleMessages} tempMess={tempMess}/>} />
+          <Route path='/:room' element={<Room setRoomId={setRoomId} videoGrid={videoGrid} handleChangeSize={handleChangeSize} handleStart={handleStart} handleStop={handleStop} handlePlay={handlePlay} handleMessages={handleMessages} tempMess={tempMess} width={width} height={height} onVideo={onVideo} handleOnVideo={handleOnVideo} />} />
           <Route path='/' element={<Home handleRoom={handleRoom} />} />
         </Routes>
       </div>
